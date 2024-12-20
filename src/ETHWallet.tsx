@@ -1,5 +1,4 @@
-import { mnemonicToSeed } from "bip39";
-import { derivePath } from "ed25519-hd-key";
+import { mnemonicToSeedSync } from "bip39";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 
@@ -20,10 +19,11 @@ const ETHWallet = ({ mnemonic }: { mnemonic: string }) => {
     }
 
     const generateWallet = async () => {
-        const seed = await mnemonicToSeed(mnemonic);
+        const seed = await mnemonicToSeedSync(mnemonic);
         const path = `m/44'/60'/${walletData.currentIndex}'/0'`;
-        const derivedSeed = derivePath(path, seed.toString("hex")).key;
-        const privateKey = Buffer.from(derivedSeed).toString("hex");
+        const hdnode = ethers.HDNodeWallet.fromSeed(seed);
+        const child = hdnode.derivePath(path);
+        const privateKey = child.privateKey;
         const wallet = new ethers.Wallet(privateKey);
         const publicKey = wallet.address;
         
